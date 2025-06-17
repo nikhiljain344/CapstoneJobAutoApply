@@ -1,0 +1,111 @@
+1. Overview
+AutoJobApply Web Application - Final PRD
+Version 2.0: Enhanced Experience Classification & Resume Automation
+1. Core Objectives
+Automatically apply to 10+ relevant jobs/user/day (Mon-Fri)
+Match jobs within 30 miles of user's zip code
+Classify experience using: Work History (direct/indirect) + Education Credits
+Attach resumes via 3 methods: API > File Upload > Text Fallback
+Scale to 500 users (initial support: 150)
+Send confirmations to user + staffing@cswpbc.org
+2. Experience Classification System
+Formula:
+Total Years = Work Experience + Education Credits
+Level Thresholds:
+Entry Level: < 3 years
+Mid Level: 3–8 years
+Senior Level: > 8 years
+3. User Flow
+Signup/Login
+Email/password authentication
+Profile Setup
+Personal Info: Name, address, phone, email, zip code
+Education History:
+Institution name, degree type (dropdown), field of study
+Work Experience:
+Job title, company, dates, direct/indirect toggle
+Resume Upload: PDF/DOCX → parsed & stored in AWS S3
+Preferences:
+Salary range, remote options, auto-respond "Yes" to questions
+Job Matching
+Filters: 30-mile radius + experience level + role relevance
+Ranking: Skills match (50%) + experience alignment (30%) + education (20%)
+Auto-Application
+Priority 1: Attach via job board API (Indeed/Monster)
+Priority 2: Puppeteer file upload
+Priority 3: Paste parsed resume text
+Confirmation
+Email to user + staffing@cswpbc.org with job details
+4. Technical Stack
+5. Key Algorithms
+Experience Calculator:
+javascript
+Copy
+Download
+function calculateExperience(work, education) {
+  const workYears = work.reduce((sum, job) => {
+    const years = (job.endDate - job.startDate) / 31536000000;
+    return sum + (job.isDirect ? years : years * 0.5);
+  }, 0);
+  const educationCredits = {
+    high_school: 0, associate: 1, bachelor: 2, master: 3, phd: 4 
+  };
+  return workYears + educationCredits[education.degree];
+}
+Job Matching Score:
+python
+Copy
+Download
+score = (0.5 * skill_similarity) + (0.3 * experience_match) + (0.2 * education_relevance)
+6. Database Schema
+Users
+id, email, password_hash, name, address, zip_code
+Education
+user_id, institution, degree_type, field_of_study
+Work Experience
+user_id, job_title, company, start_date, end_date, is_direct
+Profiles
+user_id, resume_s3_key, resume_text, total_experience, experience_level
+Applications
+user_id, job_id, applied_at, method (api/upload/text)
+7. Auto-Apply Workflow
+Diagram
+Code
+Download
+EmailJob BoardPuppeteerQueueMatchingJob APIsParserS3BackendUserEmailJob BoardPuppeteerQueueMatchingJob APIsParserS3BackendUseralt[API available][File upload]loop[Daily at 8 AM]Upload resume + profileStore encrypted resumeExtract work/educationTotal experience = 3.5 (Mid Level)Fetch jobs (30 miles)Rank jobs by relevanceAdd 10+ jobsApply with resumeSubmit via APIUpload resumePaste resume textApplication resultSend dual confirmations
+8. Security & Compliance
+Data Encryption: AES-256 for PII/resumes
+GDPR Tools: 1-click data export/deletion
+Anti-Blocking:
+Proxy rotation (BrightData)
+CAPTCHA solving (2Captcha)
+Randomized human-like interactions
+Access Control: IAM roles for S3/Puppeteer
+9. Scalability Plan
+10. Metrics & Monitoring
+Success Rate: Applications by method (API/upload/text)
+Experience Accuracy: Parsed vs manual experience reports
+Job Match Quality: % of applications receiving interviews
+System Health: Uptime, queue backlog, error rates (Grafana)
+Component | Calculation Method
+Direct Work | 100% of duration (e.g., 2 years = 2.0)
+Indirect Work | 50% of duration (e.g., 2 years = 1.0)
+High School | 0 years
+Associate Degree | 1 year
+Bachelor Degree | 2 years
+Master Degree | 3 years
+PhD | 4 years
+Layer | Technology | Purpose
+Frontend | React + TypeScript | Responsive UI with red/white/blue theme
+Backend | Node.js/Express.js | API & business logic
+Database | PostgreSQL + PostGIS | User profiles, jobs, applications
+Storage | AWS S3 (encrypted) | Resume files
+Queue | Redis + Bull.js | Job application scheduling
+Automation | Puppeteer Cluster | Job applications & scraping
+APIs | Indeed, Monster, Google Geocoding | Job search & location data
+Email | Nodemailer + SendGrid | Application confirmations
+Resource | 0-150 Users | 150-500 Users
+Server | AWS t3.large | Kubernetes cluster
+Puppeteer | 5 Docker containers | Auto-scaling worker pool
+Database | PostgreSQL 50 GB | RDS read replicas
+Job Queue | Redis 1 node | Redis Cluster
