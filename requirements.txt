@@ -15,4 +15,5 @@ selenium
 python-docx
 PyPDF2
 gunicorn
+beautifulsoup4
 

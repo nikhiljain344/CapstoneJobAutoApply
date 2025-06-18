@@ -22,19 +22,25 @@ from src.routes.matching import matching_bp
 from src.routes.queue import queue_bp
 from src.routes.analytics import analytics_bp
 
-def create_app(config_name=None):
+def create_app(config_object='src.config.Config'):
     """Application factory pattern"""
-    if config_name is None:
-        config_name = os.environ.get('FLASK_ENV', 'development')
-    
     app = Flask(__name__, static_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static'))
     
     # Load configuration
-    app.config.from_object(config[config_name])
+    app.config.from_object(config_object)
     
     # Initialize extensions
     db.init_app(app)
-    CORS(app, origins="*", supports_credentials=True)
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["http://localhost:5173", "http://127.0.0.1:5173"],
+            "supports_credentials": True,
+            "allow_headers": ["Content-Type", "Authorization"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "expose_headers": ["Authorization"],
+            "max_age": 120
+        }
+    })
     jwt = JWTManager(app)
     migrate = Migrate(app, db)
     
@@ -54,7 +60,7 @@ def create_app(config_name=None):
         return jsonify({
             'status': 'healthy',
             'version': '1.0.0',
-            'environment': config_name
+            'environment': app.config['FLASK_ENV']
         })
     
     # Error handlers
@@ -78,7 +84,7 @@ def create_app(config_name=None):
     
     @jwt.unauthorized_loader
     def missing_token_callback(error):
-        return jsonify({'error': 'Authorization token is required'}), 401
+        return jsonify({'error': 'Authorization token is missing'}), 401
     
     # Serve React app
     @app.route('/', defaults={'path': ''})
@@ -97,15 +103,15 @@ def create_app(config_name=None):
             else:
                 return jsonify({'message': 'AutoJobApply API is running'}), 200
     
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+    
     return app
 
 # Create app instance
 app = create_app()
 
 if __name__ == '__main__':
-    with app.app_context():
-        # Create tables if they don't exist
-        db.create_all()
-    
     app.run(host='0.0.0.0', port=5002, debug=True)
 
