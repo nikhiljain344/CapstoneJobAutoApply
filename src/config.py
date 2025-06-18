@@ -13,12 +13,18 @@ SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///instance/dev
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # JWT configuration
-JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-jwt-secret-key-here')
-JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)  # Token expires in 24 hours
+JWT_SECRET_KEY = 'dev'  # Development secret key that matches the token
+JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
 JWT_TOKEN_LOCATION = ['headers']
 JWT_HEADER_NAME = 'Authorization'
 JWT_HEADER_TYPE = 'Bearer'
 JWT_ERROR_MESSAGE_KEY = 'error'
+JWT_IDENTITY_CLAIM = 'sub'
+JWT_DECODE_ALGORITHMS = ['HS256']
+JWT_COOKIE_SECURE = False
+JWT_COOKIE_CSRF_PROTECT = False  # Disable CSRF protection for now
+JWT_CSRF_CHECK_FORM = False
+JWT_CSRF_IN_COOKIES = False
 
 # CORS configuration
 CORS_ORIGINS = [
@@ -26,11 +32,21 @@ CORS_ORIGINS = [
     'http://localhost:3000',  # Alternative frontend port
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000',
+    'http://localhost:5002',  # Backend server
+]
+CORS_ALLOW_HEADERS = [
+    'Content-Type',
+    'Authorization',
+    'X-CSRF-TOKEN'
 ]
 
 # API configuration
 API_TITLE = 'Job Auto Apply API'
 API_VERSION = 'v1'
+
+# Add debug configuration
+DEBUG = True
+PROPAGATE_EXCEPTIONS = True  # This will help us see the actual error messages
 
 class Config:
     SECRET_KEY = SECRET_KEY
@@ -42,6 +58,10 @@ class Config:
     JWT_HEADER_NAME = JWT_HEADER_NAME
     JWT_HEADER_TYPE = JWT_HEADER_TYPE
     JWT_ERROR_MESSAGE_KEY = JWT_ERROR_MESSAGE_KEY
+    JWT_IDENTITY_CLAIM = JWT_IDENTITY_CLAIM
+    JWT_DECODE_ALGORITHMS = JWT_DECODE_ALGORITHMS
+    JWT_COOKIE_SECURE = JWT_COOKIE_SECURE
+    JWT_COOKIE_CSRF_PROTECT = JWT_COOKIE_CSRF_PROTECT
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ['access']
     

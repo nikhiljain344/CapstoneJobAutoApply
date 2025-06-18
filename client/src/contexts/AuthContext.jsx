@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { authAPI } from '../services/api'
 
 const AuthContext = createContext()
 
@@ -11,14 +12,13 @@ export function useAuth() {
   return context
 }
 
-const API_BASE_URL = 'http://localhost:5002/api'
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [token, setToken] = useState(() => {
     // Initialize token from localStorage
     const savedToken = localStorage.getItem('token')
+    console.log('🔄 Initial token:', savedToken ? 'exists' : 'none')
     if (savedToken) {
       try {
         // Verify token format
@@ -27,6 +27,7 @@ export function AuthProvider({ children }) {
           return savedToken
         }
       } catch (error) {
+        console.error('❌ Invalid token format:', error)
         localStorage.removeItem('token')
         return null
       }
@@ -34,51 +35,17 @@ export function AuthProvider({ children }) {
     return null
   })
 
-  // API helper function with retry mechanism
-  const apiCall = async (endpoint, options = {}, retryCount = 0) => {
-    const url = `${API_BASE_URL}${endpoint}`
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        ...options.headers,
-      },
-      credentials: 'include',
-      ...options,
-    }
-
-    try {
-      const response = await fetch(url, config)
-      
-      // Handle 401 Unauthorized
-      if (response.status === 401 && retryCount === 0) {
-        // Token might be expired, try to refresh or logout
-        logout()
-        throw new Error('Session expired. Please login again.')
-      }
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'An error occurred')
-      }
-
-      return data
-    } catch (error) {
-      console.error('API call failed:', error)
-      throw error
-    }
-  }
-
   // Load user on mount or token change
   useEffect(() => {
     const loadUser = async () => {
+      console.log('🔄 Loading user, token:', token ? 'exists' : 'none')
       if (token) {
         try {
-          const data = await apiCall('/auth/me')
+          const data = await authAPI.getCurrentUser()
+          console.log('✅ User loaded:', data.user)
           setUser(data.user)
         } catch (error) {
-          console.error('Failed to load user:', error)
+          console.error('❌ Failed to load user:', error)
           // Clear auth state on error
           localStorage.removeItem('token')
           setToken(null)
@@ -93,18 +60,22 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const data = await apiCall('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      })
+      console.log('🔄 Login attempt:', email)
+      // Clear any existing auth state
+      localStorage.removeItem('token')
+      setToken(null)
+      setUser(null)
 
+      const data = await authAPI.login(email, password)
+      console.log('✅ Login response:', data)
       const { access_token, user: userData } = data
-      
+
       // Validate token before storing
       if (!access_token || typeof access_token !== 'string') {
         throw new Error('Invalid token received')
       }
 
+      console.log('🔑 Setting token and user')
       // Set token first
       localStorage.setItem('token', access_token)
       setToken(access_token)
@@ -114,24 +85,32 @@ export function AuthProvider({ children }) {
 
       return { success: true, user: userData }
     } catch (error) {
-      return { success: false, error: error.message }
+      console.error('❌ Login error:', error)
+      return { 
+        success: false, 
+        error: error.error || error.message || 'Login failed' 
+      }
     }
   }
 
   const register = async (userData) => {
     try {
-      const data = await apiCall('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(userData),
-      })
+      console.log('🔄 Register attempt:', userData.email)
+      // Clear any existing auth state
+      localStorage.removeItem('token')
+      setToken(null)
+      setUser(null)
 
+      const data = await authAPI.register(userData)
+      console.log('✅ Register response:', data)
       const { access_token, user: newUser } = data
-      
+
       // Validate token before storing
       if (!access_token || typeof access_token !== 'string') {
         throw new Error('Invalid token received')
       }
 
+      console.log('🔑 Setting token and user')
       // Set token first
       localStorage.setItem('token', access_token)
       setToken(access_token)
@@ -141,11 +120,16 @@ export function AuthProvider({ children }) {
 
       return { success: true, user: newUser }
     } catch (error) {
-      return { success: false, error: error.message }
+      console.error('❌ Register error:', error)
+      return { 
+        success: false, 
+        error: error.error || error.message || 'Registration failed' 
+      }
     }
   }
 
   const logout = () => {
+    console.log('🔒 Logging out')
     localStorage.removeItem('token')
     setToken(null)
     setUser(null)
@@ -153,31 +137,28 @@ export function AuthProvider({ children }) {
 
   const updateProfile = async (profileData) => {
     try {
-      const data = await apiCall('/profile/basic', {
-        method: 'PUT',
-        body: JSON.stringify(profileData),
-      })
-
+      const data = await authAPI.updateProfile(profileData)
       setUser(data.user)
       return { success: true, user: data.user }
     } catch (error) {
-      return { success: false, error: error.message }
+      console.error('❌ Update profile error:', error)
+      return { 
+        success: false, 
+        error: error.error || error.message || 'Failed to update profile' 
+      }
     }
   }
 
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      await apiCall('/auth/change-password', {
-        method: 'POST',
-        body: JSON.stringify({
-          current_password: currentPassword,
-          new_password: newPassword,
-        }),
-      })
-
+      await authAPI.changePassword(currentPassword, newPassword)
       return { success: true }
     } catch (error) {
-      return { success: false, error: error.message }
+      console.error('❌ Change password error:', error)
+      return { 
+        success: false, 
+        error: error.error || error.message || 'Failed to change password' 
+      }
     }
   }
 
@@ -190,7 +171,6 @@ export function AuthProvider({ children }) {
     logout,
     updateProfile,
     changePassword,
-    apiCall,
   }
 
   return (

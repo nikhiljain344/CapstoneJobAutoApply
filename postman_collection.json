@@ -1,0 +1,633 @@
+{
+  "info": {
+    "name": "AutoJobApply API",
+    "description": "API collection for AutoJobApply platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"TestPassword123\",\n    \"name\": \"Test User\",\n    \"zip_code\": \"12345\",\n    \"phone\": \"1234567890\",\n    \"address\": \"123 Test St\"\n}"
+            },
+            "description": "Register a new user"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"TestPassword123\"\n}"
+            },
+            "description": "Login and get access token"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/auth/me",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get current user information"
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/auth/change-password",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "auth", "change-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"current_password\": \"TestPassword123\",\n    \"new_password\": \"NewPassword123\"\n}"
+            },
+            "description": "Change user password"
+          }
+        },
+        {
+          "name": "Deactivate Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/auth/deactivate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "auth", "deactivate"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"password\": \"TestPassword123\"\n}"
+            },
+            "description": "Deactivate user account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile"]
+            },
+            "description": "Get user's complete profile"
+          }
+        },
+        {
+          "name": "Update Basic Info",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/basic",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "basic"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Name\",\n    \"phone\": \"9876543210\",\n    \"address\": \"456 New St\",\n    \"zip_code\": \"54321\"\n}"
+            },
+            "description": "Update basic user information"
+          }
+        },
+        {
+          "name": "Add Education",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/education",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "education"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"institution\": \"Test University\",\n    \"degree_type\": \"bachelor\",\n    \"field_of_study\": \"Computer Science\",\n    \"graduation_year\": 2023,\n    \"gpa\": 3.8\n}"
+            },
+            "description": "Add education record"
+          }
+        },
+        {
+          "name": "Update Education",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/education/{{education_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "education", "{{education_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"institution\": \"Updated University\",\n    \"degree_type\": \"master\",\n    \"field_of_study\": \"Data Science\",\n    \"graduation_year\": 2024,\n    \"gpa\": 3.9\n}"
+            },
+            "description": "Update education record"
+          }
+        },
+        {
+          "name": "Delete Education",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/education/{{education_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "education", "{{education_id}}"]
+            },
+            "description": "Delete education record"
+          }
+        },
+        {
+          "name": "Add Work Experience",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/work-experience",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "work-experience"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"job_title\": \"Software Engineer\",\n    \"company\": \"Tech Corp\",\n    \"start_date\": \"2022-01-01\",\n    \"end_date\": \"2023-01-01\",\n    \"is_current\": false,\n    \"description\": \"Full-stack development\"\n}"
+            },
+            "description": "Add work experience record"
+          }
+        },
+        {
+          "name": "Update Work Experience",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/work-experience/{{work_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "work-experience", "{{work_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"job_title\": \"Senior Engineer\",\n    \"company\": \"New Corp\",\n    \"start_date\": \"2022-01-01\",\n    \"is_current\": true,\n    \"description\": \"Updated description\"\n}"
+            },
+            "description": "Update work experience record"
+          }
+        },
+        {
+          "name": "Delete Work Experience",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/work-experience/{{work_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "work-experience", "{{work_id}}"]
+            },
+            "description": "Delete work experience record"
+          }
+        },
+        {
+          "name": "Get Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/preferences",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "preferences"]
+            },
+            "description": "Get user preferences"
+          }
+        },
+        {
+          "name": "Update Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/profile/preferences",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "profile", "preferences"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"desired_job_titles\": [\"Software Engineer\", \"Full Stack Developer\"],\n    \"desired_locations\": [\"San Francisco, CA\", \"Remote\"],\n    \"min_salary\": 100000,\n    \"job_types\": [\"full_time\", \"remote\"],\n    \"experience_level\": \"mid\"\n}"
+            },
+            "description": "Update user preferences"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Search Jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/jobs/search",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "jobs", "search"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"keywords\": \"software engineer\",\n    \"location\": \"San Francisco, CA\",\n    \"radius\": 25,\n    \"job_type\": \"full_time\",\n    \"experience_level\": \"mid\",\n    \"page\": 1,\n    \"per_page\": 20\n}"
+            },
+            "description": "Search for jobs"
+          }
+        },
+        {
+          "name": "Get Job Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/jobs/recommendations",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "jobs", "recommendations"]
+            },
+            "description": "Get job recommendations"
+          }
+        },
+        {
+          "name": "Get Job Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/jobs/{{job_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "jobs", "{{job_id}}"]
+            },
+            "description": "Get job details"
+          }
+        },
+        {
+          "name": "Get Search History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/jobs/history",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "jobs", "history"]
+            },
+            "description": "Get job search history"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "item": [
+        {
+          "name": "Get Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/applications?page=1&per_page=20&status=pending",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "applications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            },
+            "description": "Get user's job applications"
+          }
+        },
+        {
+          "name": "Get Application Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/applications/{{application_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "applications", "{{application_id}}"]
+            },
+            "description": "Get application details"
+          }
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/applications/{{application_id}}/status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "applications", "{{application_id}}", "status"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"interview\"\n}"
+            },
+            "description": "Update application status"
+          }
+        },
+        {
+          "name": "Get Application Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/applications/stats",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "applications", "stats"]
+            },
+            "description": "Get application statistics"
+          }
+        },
+        {
+          "name": "Get Application Queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5002/api/applications/queue",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5002",
+              "path": ["api", "applications", "queue"]
+            },
+            "description": "Get application queue status"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "your_jwt_token_here"
+    },
+    {
+      "key": "education_id",
+      "value": "1"
+    },
+    {
+      "key": "work_id",
+      "value": "1"
+    },
+    {
+      "key": "job_id",
+      "value": "1"
+    },
+    {
+      "key": "application_id",
+      "value": "1"
+    }
+  ]
+} 

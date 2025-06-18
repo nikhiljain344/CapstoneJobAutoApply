@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
@@ -26,7 +26,11 @@ function ProtectedRoute({ children }) {
     )
   }
   
-  return user ? children : <Navigate to="/login" />
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+  
+  return children
 }
 
 // Public Route Component (redirect to dashboard if logged in)
@@ -41,11 +45,23 @@ function PublicRoute({ children }) {
     )
   }
   
-  return user ? <Navigate to="/dashboard" /> : children
+  if (user) {
+    return <Navigate to="/dashboard" replace />
+  }
+  
+  return children
 }
 
 function AppContent() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,7 +108,7 @@ function AppContent() {
           } />
           
           {/* Catch all route */}
-          <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} />} />
+          <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
         </Routes>
       </main>
     </div>

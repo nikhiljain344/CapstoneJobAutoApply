@@ -1,5 +1,11 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import (
+    create_access_token, 
+    jwt_required, 
+    get_jwt_identity,
+    get_jwt,
+    current_user
+)
 from datetime import datetime, timezone
 import re
 
@@ -34,7 +40,7 @@ def register():
         required_fields = ['email', 'password', 'name', 'zip_code']
         for field in required_fields:
             if not data.get(field):
-                return jsonify({'error': f'{field} is required'}), 400
+                return jsonify({'error': f'{field} is required', 'code': 'missing_field'}), 400
         
         email = data['email'].lower().strip()
         password = data['password']
@@ -43,16 +49,16 @@ def register():
         
         # Validate email format
         if not validate_email(email):
-            return jsonify({'error': 'Invalid email format'}), 400
+            return jsonify({'error': 'Invalid email format', 'code': 'invalid_email'}), 400
         
         # Validate password strength
         is_valid, message = validate_password(password)
         if not is_valid:
-            return jsonify({'error': message}), 400
+            return jsonify({'error': message, 'code': 'invalid_password'}), 400
         
         # Check if user already exists
         if User.query.filter_by(email=email).first():
-            return jsonify({'error': 'Email already registered'}), 409
+            return jsonify({'error': 'Email already registered', 'code': 'email_exists'}), 409
         
         # Create new user
         user = User(
@@ -73,8 +79,15 @@ def register():
         
         db.session.commit()
         
-        # Create access token
-        access_token = create_access_token(identity=user.id)
+        # Create access token with additional claims
+        additional_claims = {
+            "name": user.name,
+            "email": user.email
+        }
+        access_token = create_access_token(
+            identity=user.id,
+            additional_claims=additional_claims
+        )
         
         return jsonify({
             'message': 'User registered successfully',
@@ -84,7 +97,11 @@ def register():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'Registration failed', 'details': str(e)}), 500
+        return jsonify({
+            'error': 'Registration failed',
+            'code': 'registration_error',
+            'details': str(e)
+        }), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -93,7 +110,10 @@ def login():
         data = request.get_json()
         
         if not data.get('email') or not data.get('password'):
-            return jsonify({'error': 'Email and password are required'}), 400
+            return jsonify({
+                'error': 'Email and password are required',
+                'code': 'missing_credentials'
+            }), 400
         
         email = data['email'].lower().strip()
         password = data['password']
@@ -102,17 +122,30 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if not user or not user.check_password(password):
-            return jsonify({'error': 'Invalid email or password'}), 401
+            return jsonify({
+                'error': 'Invalid email or password',
+                'code': 'invalid_credentials'
+            }), 401
         
         if not user.is_active:
-            return jsonify({'error': 'Account is deactivated'}), 401
+            return jsonify({
+                'error': 'Account is deactivated',
+                'code': 'account_deactivated'
+            }), 401
         
         # Update last login
         user.last_login = datetime.now(timezone.utc)
         db.session.commit()
         
-        # Create access token
-        access_token = create_access_token(identity=user.id)
+        # Create access token with additional claims
+        additional_claims = {
+            "name": user.name,
+            "email": user.email
+        }
+        access_token = create_access_token(
+            identity=str(user.id),  # Convert user ID to string
+            additional_claims=additional_claims
+        )
         
         return jsonify({
             'message': 'Login successful',
@@ -121,23 +154,42 @@ def login():
         }), 200
         
     except Exception as e:
-        return jsonify({'error': 'Login failed', 'details': str(e)}), 500
+        return jsonify({
+            'error': 'Login failed',
+            'code': 'login_error',
+            'details': str(e)
+        }), 500
 
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
     """Get current user information"""
     try:
-        user_id = get_jwt_identity()
-        user = User.query.get(user_id)
+        # Get user from JWT token (set by user_lookup_loader)
+        if not current_user:
+            return jsonify({
+                'error': 'User not found',
+                'code': 'user_not_found'
+            }), 404
         
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
+        # Get current token claims
+        claims = get_jwt()
         
-        return jsonify({'user': user.to_dict()}), 200
+        return jsonify({
+            'user': current_user.to_dict(),
+            'token_info': {
+                'exp': claims['exp'],
+                'iat': claims['iat'],
+                'type': claims['type']
+            }
+        }), 200
         
     except Exception as e:
-        return jsonify({'error': 'Failed to get user info', 'details': str(e)}), 500
+        return jsonify({
+            'error': 'Failed to get user info',
+            'code': 'user_info_error',
+            'details': str(e)
+        }), 500
 
 @auth_bp.route('/change-password', methods=['POST'])
 @jwt_required()
