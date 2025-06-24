@@ -11,37 +11,19 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Download required NLTK data
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
 
-# Lazy loading of NLTK data
-def load_nltk_data():
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        nltk.download('punkt', quiet=True)
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
 
-    try:
-        nltk.data.find('corpora/stopwords')
-    except LookupError:
-        nltk.download('stopwords', quiet=True)
-
-# Lazy loading of spaCy model
-_nlp = None
-def get_nlp():
-    global _nlp
-    if _nlp is None:
-        try:
-            # Load the small model with reduced components
-            _nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser', 'textcat'])
-            # Reduce max length to save memory
-            _nlp.max_length = 1000000  # 1M chars instead of default 2M
-        except OSError:
-            logger.error("spaCy model not found. Installing...")
-            os.system('python -m spacy download en_core_web_sm')
-            _nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser', 'textcat'])
-    return _nlp
+# Load spaCy model
+nlp = spacy.load('en_core_web_sm')
 
 class ResumeProcessor:
     """
@@ -53,9 +35,7 @@ class ResumeProcessor:
     """
     
     def __init__(self):
-        # Lazy load NLTK data
-        load_nltk_data()
-        self.stop_words = None  # Lazy load stop words
+        self.stop_words = set(stopwords.words('english'))
         
         # Common skills database (expandable)
         self.technical_skills = {
